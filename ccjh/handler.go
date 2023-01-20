@@ -17,23 +17,14 @@
 package ccjh
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
 )
 
-type job struct {
-	ctx   context.Context
-	tFunc TargetFunc
-	tArgs map[string]any
-	meta  JobMeta
-}
-
 type Handler struct {
-	ctx     context.Context
-	pJobs   chan *job
+	pJobs   chan Job
 	jCount  counter
 	jWG     sync.WaitGroup
 	sChan   chan bool
@@ -42,29 +33,21 @@ type Handler struct {
 	mu      sync.Mutex
 }
 
-func New(ctx context.Context, buffer int) *Handler {
+func New(buffer int) *Handler {
 	return &Handler{
-		ctx:    ctx,
-		pJobs:  make(chan *job, buffer),
+		pJobs:  make(chan Job, buffer),
 		jCount: counter{},
 		sChan:  make(chan bool, 1),
 	}
 }
 
-func (h *Handler) Add(tFunc TargetFunc, tArgs map[string]any, jMeta JobMeta) (context.CancelFunc, error) {
-	ctx, cf := context.WithCancel(h.ctx)
-	j := &job{
-		ctx:   ctx,
-		tFunc: tFunc,
-		tArgs: tArgs,
-		meta:  jMeta,
-	}
+func (h *Handler) Add(job Job) error {
 	select {
-	case h.pJobs <- j:
+	case h.pJobs <- job:
 	default:
-		return cf, fmt.Errorf("buffer full")
+		return fmt.Errorf("buffer full")
 	}
-	return cf, nil
+	return nil
 }
 
 func (h *Handler) Run(maxJobs int, interval time.Duration) error {
@@ -85,7 +68,7 @@ func (h *Handler) Run(maxJobs int, interval time.Duration) error {
 					if h.jCount.Value() < maxJobs {
 						select {
 						case j := <-h.pJobs:
-							if !j.meta.IsCanceled() {
+							if !j.IsCanceled() {
 								e := h.start(j)
 								if e != nil {
 									fmt.Println(e)
@@ -132,22 +115,14 @@ func (h *Handler) Reset() error {
 	return nil
 }
 
-func (h *Handler) start(j *job) error {
+func (h *Handler) start(j Job) error {
 	h.jWG.Add(1)
 	h.jCount.Increase()
 	go func() {
 		defer h.jWG.Done()
-		j.meta.SetStarted(time.Now().UTC())
-		r, e := j.tFunc(j.ctx, j.tArgs)
-		if e == nil {
-			e = j.ctx.Err()
-		}
-		if e != nil {
-			j.meta.SetError(e)
-		} else {
-			j.meta.SetResult(r)
-		}
-		j.meta.SetCompleted(time.Now().UTC())
+		j.SetStarted(time.Now().UTC())
+		j.CallTarget()
+		j.SetCompleted(time.Now().UTC())
 		h.jCount.Decrease()
 	}()
 	return nil
