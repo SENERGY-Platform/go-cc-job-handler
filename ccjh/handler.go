@@ -26,7 +26,6 @@ import (
 
 type job struct {
 	ctx   context.Context
-	cFunc context.CancelFunc
 	tFunc TargetFunc
 	tArgs map[string]any
 	meta  JobMeta
