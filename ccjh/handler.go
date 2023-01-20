@@ -81,9 +81,6 @@ func (h *Handler) Run(maxJobs int, interval time.Duration) error {
 			for !stop {
 				select {
 				case stop = <-h.sChan:
-					h.mu.Lock()
-					h.running = false
-					h.mu.Unlock()
 				case <-h.ticker.C:
 					if h.jCount.Value() < maxJobs {
 						select {
@@ -99,6 +96,9 @@ func (h *Handler) Run(maxJobs int, interval time.Duration) error {
 					}
 				}
 			}
+			h.mu.Lock()
+			h.running = false
+			h.mu.Unlock()
 		}()
 		h.running = true
 	} else {
