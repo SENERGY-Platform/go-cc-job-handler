@@ -69,10 +69,15 @@ func (h *Handler) Run(maxJobs int, interval time.Duration) error {
 						select {
 						case j := <-h.pJobs:
 							if !j.IsCanceled() {
-								e := h.start(j)
-								if e != nil {
-									fmt.Println(e)
-								}
+								h.jWG.Add(1)
+								h.jCount.Increase()
+								go func() {
+									defer h.jWG.Done()
+									j.SetStarted(time.Now().UTC())
+									j.CallTarget()
+									j.SetCompleted(time.Now().UTC())
+									h.jCount.Decrease()
+								}()
 							}
 						default:
 						}
@@ -112,18 +117,5 @@ func (h *Handler) Reset() error {
 	for len(h.pJobs) > 0 {
 		<-h.pJobs
 	}
-	return nil
-}
-
-func (h *Handler) start(j Job) error {
-	h.jWG.Add(1)
-	h.jCount.Increase()
-	go func() {
-		defer h.jWG.Done()
-		j.SetStarted(time.Now().UTC())
-		j.CallTarget()
-		j.SetCompleted(time.Now().UTC())
-		h.jCount.Decrease()
-	}()
 	return nil
 }
