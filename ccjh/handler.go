@@ -65,7 +65,7 @@ func (h *Handler) Run(maxJobs int, interval time.Duration) error {
 				select {
 				case stop = <-h.sChan:
 				case <-h.ticker.C:
-					if h.jCount.Value() < maxJobs {
+					if maxJobs == 0 || h.jCount.Value() < maxJobs {
 						select {
 						case j := <-h.pJobs:
 							if !j.IsCanceled() {
