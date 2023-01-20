@@ -35,6 +35,7 @@ type Handler struct {
 	ctx     context.Context
 	pJobs   chan *job
 	jCount  counter
+	jWG     sync.WaitGroup
 	sChan   chan bool
 	running bool
 	ticker  *time.Ticker
@@ -115,9 +116,15 @@ func (h *Handler) Stop() {
 	h.mu.Unlock()
 }
 
+func (h *Handler) Wait() {
+	h.jWG.Wait()
+}
+
 func (h *Handler) start(j *job) error {
+	h.jWG.Add(1)
 	h.jCount.Increase()
 	go func() {
+		defer h.jWG.Done()
 		j.meta.SetStarted(time.Now().UTC())
 		r, e := j.tFunc(j.ctx, j.tArgs)
 		if e == nil {
