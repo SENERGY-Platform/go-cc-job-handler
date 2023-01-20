@@ -120,6 +120,18 @@ func (h *Handler) Wait() {
 	h.jWG.Wait()
 }
 
+func (h *Handler) Reset() error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.running {
+		return errors.New("can't reset while running")
+	}
+	for len(h.pJobs) > 0 {
+		<-h.pJobs
+	}
+	return nil
+}
+
 func (h *Handler) start(j *job) error {
 	h.jWG.Add(1)
 	h.jCount.Increase()
