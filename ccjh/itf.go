@@ -21,9 +21,8 @@ import (
 	"time"
 )
 
-type JobMeta interface {
-	SetResult(any)
-	SetError(error)
+type Job interface {
+	CallTarget()
 	SetStarted(time.Time)
 	SetCompleted(time.Time)
 	IsCanceled() bool
