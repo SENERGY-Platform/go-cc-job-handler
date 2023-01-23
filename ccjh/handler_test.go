@@ -94,3 +94,59 @@ func TestHandler_IO(t *testing.T) {
 		return
 	}
 }
+
+func TestHandler_Run(t *testing.T) {
+	ctx := context.Background()
+	jh := New(3)
+	j1, _ := newTestJob(ctx, 1)
+	err := jh.Add(j1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	go func() {
+		err = jh.Run(2, 50*time.Millisecond)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}()
+	j2, j2cf := newTestJob(ctx, 10)
+	err = jh.Add(j2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	j2cf()
+	j2.Canceled = true
+	j3, _ := newTestJob(ctx, 1)
+	err = jh.Add(j3)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(250 * time.Millisecond)
+	jh.Stop()
+	time.Sleep(250 * time.Millisecond)
+	if jh.Running() {
+		t.Errorf("running == true")
+		return
+	}
+	if jh.Pending() != 0 {
+		t.Errorf("pending jobs != 0")
+		return
+	}
+	jh.Wait()
+	if j1.Result != 1 {
+		t.Errorf("j1 result != 1")
+		return
+	}
+	if j2.Result != 0 {
+		t.Errorf("j2 result != 0")
+		return
+	}
+	if j3.Result != 1 {
+		t.Errorf("j3 result != 0")
+		return
+	}
+}
