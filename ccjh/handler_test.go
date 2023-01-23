@@ -34,18 +34,7 @@ type testJob struct {
 
 func (j *testJob) CallTarget() {
 	j.tFunc()
-}
-
-func (j *testJob) SetStarted(t time.Time) {
-	j.mu.Lock()
-	j.Started = t
-	j.mu.Unlock()
-}
-
-func (j *testJob) SetCompleted(t time.Time) {
-	j.mu.Lock()
-	j.Completed = t
-	j.mu.Unlock()
+	cbk()
 }
 
 func (j *testJob) IsCanceled() bool {
