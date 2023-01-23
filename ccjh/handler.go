@@ -36,7 +36,7 @@ type Handler struct {
 func New(buffer int) *Handler {
 	return &Handler{
 		pJobs:  make(chan Job, buffer),
-		jCount: counter{},
+		jCount: counter{c: 0},
 		sChan:  make(chan bool, 1),
 	}
 }
