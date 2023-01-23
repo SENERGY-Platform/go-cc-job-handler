@@ -72,7 +72,7 @@ func testFunc(ctx context.Context, t int) (int, error) {
 	return i, nil
 }
 
-func TestHandler_IO(t *testing.T) {
+func TestHandlerIO(t *testing.T) {
 	jh := New(1)
 	err := jh.Add(&testJob{})
 	if err != nil {
@@ -99,7 +99,7 @@ func TestHandler_IO(t *testing.T) {
 	}
 }
 
-func TestHandler_Run(t *testing.T) {
+func TestHandlerJobs(t *testing.T) {
 	ctx := context.Background()
 	jh := New(3)
 	j1, _ := newTestJob(ctx, 1)
