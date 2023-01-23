@@ -17,7 +17,6 @@
 package ccjh
 
 import (
-	"context"
 	"time"
 )
 
@@ -27,5 +26,3 @@ type Job interface {
 	SetCompleted(time.Time)
 	IsCanceled() bool
 }
-
-type TargetFunc func(context.Context, map[string]any) (any, error)
