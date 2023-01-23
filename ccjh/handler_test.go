@@ -25,14 +25,11 @@ import (
 )
 
 type testJob struct {
-	mu        sync.RWMutex
-	tFunc     func()
-	Result    int       `json:"result"`
-	Error     string    `json:"error"`
-	Created   time.Time `json:"created"`
-	Started   time.Time `json:"started"`
-	Completed time.Time `json:"completed"`
-	Canceled  time.Time `json:"canceled"`
+	mu       sync.RWMutex
+	tFunc    func()
+	Result   int
+	Error    error
+	Canceled bool
 }
 
 func (j *testJob) CallTarget() {
