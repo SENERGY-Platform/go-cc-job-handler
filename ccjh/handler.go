@@ -58,6 +58,12 @@ func (h *Handler) RunAsync(maxJobs int, interval time.Duration) error {
 	return h.run(maxJobs, interval, true)
 }
 
+func (h *Handler) Running() bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.running
+}
+
 func (h *Handler) Stop() {
 	h.mu.Lock()
 	if h.running {
