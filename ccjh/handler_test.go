@@ -32,7 +32,22 @@ type testJob struct {
 	Canceled bool
 }
 
-func (j *testJob) CallTarget() {
+func newTestJob(ctx context.Context, t int) (*testJob, context.CancelFunc) {
+	c, cf := context.WithCancel(ctx)
+	j := &testJob{}
+	j.tFunc = func() {
+		defer cf()
+		r, e := testFunc(c, t)
+		if e == nil {
+			e = c.Err()
+		}
+		j.Result = r
+		j.Error = e
+	}
+	return j, cf
+}
+
+func (j *testJob) CallTarget(cbk func()) {
 	j.tFunc()
 	cbk()
 }
