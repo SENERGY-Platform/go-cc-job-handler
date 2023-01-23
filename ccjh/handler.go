@@ -129,11 +129,14 @@ func (h *Handler) loop(maxJobs int) {
 						h.jWG.Add(1)
 						h.jCount.Increase()
 						go func() {
-							defer h.jWG.Done()
-							j.SetStarted(time.Now().UTC())
-							j.CallTarget()
-							j.SetCompleted(time.Now().UTC())
-							h.jCount.Decrease()
+							called := false
+							j.CallTarget(func() {
+								if !called {
+									h.jWG.Done()
+									h.jCount.Decrease()
+									called = true
+								}
+							})
 						}()
 					}
 				default:
