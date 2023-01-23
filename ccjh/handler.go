@@ -26,7 +26,6 @@ import (
 type Handler struct {
 	pJobs   chan Job
 	jCount  counter
-	jWG     sync.WaitGroup
 	sChan   chan bool
 	running bool
 	ticker  *time.Ticker
@@ -127,13 +126,11 @@ func (h *Handler) loop(maxJobs int) {
 				select {
 				case j := <-h.pJobs:
 					if !j.IsCanceled() {
-						h.jWG.Add(1)
 						h.jCount.Increase()
 						go func() {
 							called := false
 							j.CallTarget(func() {
 								if !called {
-									h.jWG.Done()
 									h.jCount.Decrease()
 									called = true
 								}
