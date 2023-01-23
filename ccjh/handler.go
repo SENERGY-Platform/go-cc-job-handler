@@ -51,48 +51,11 @@ func (h *Handler) Add(job Job) error {
 }
 
 func (h *Handler) Run(maxJobs int, interval time.Duration) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	if !h.running {
-		if h.ticker == nil {
-			h.ticker = time.NewTicker(interval)
-		} else {
-			h.ticker.Reset(interval)
-		}
-		go func() {
-			stop := false
-			for !stop {
-				select {
-				case stop = <-h.sChan:
-				case <-h.ticker.C:
-					if maxJobs == 0 || h.jCount.Value() < maxJobs {
-						select {
-						case j := <-h.pJobs:
-							if !j.IsCanceled() {
-								h.jWG.Add(1)
-								h.jCount.Increase()
-								go func() {
-									defer h.jWG.Done()
-									j.SetStarted(time.Now().UTC())
-									j.CallTarget()
-									j.SetCompleted(time.Now().UTC())
-									h.jCount.Decrease()
-								}()
-							}
-						default:
-						}
-					}
-				}
-			}
-			h.mu.Lock()
-			h.running = false
-			h.mu.Unlock()
-		}()
-		h.running = true
-	} else {
-		return errors.New("already running")
-	}
-	return nil
+	return h.run(maxJobs, interval, false)
+}
+
+func (h *Handler) RunAsync(maxJobs int, interval time.Duration) error {
+	return h.run(maxJobs, interval, true)
 }
 
 func (h *Handler) Stop() {
@@ -118,4 +81,57 @@ func (h *Handler) Reset() error {
 		<-h.pJobs
 	}
 	return nil
+}
+
+func (h *Handler) run(maxJobs int, interval time.Duration, async bool) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if !h.running {
+		if h.ticker == nil {
+			h.ticker = time.NewTicker(interval)
+		} else {
+			h.ticker.Reset(interval)
+		}
+		if async {
+			go h.loop(maxJobs)
+		} else {
+			h.loop(maxJobs)
+		}
+	} else {
+		return errors.New("already running")
+	}
+	return nil
+}
+
+func (h *Handler) loop(maxJobs int) {
+	h.mu.Lock()
+	h.running = true
+	h.mu.Unlock()
+	stop := false
+	for !stop {
+		select {
+		case stop = <-h.sChan:
+		case <-h.ticker.C:
+			if maxJobs == 0 || h.jCount.Value() < maxJobs {
+				select {
+				case j := <-h.pJobs:
+					if !j.IsCanceled() {
+						h.jWG.Add(1)
+						h.jCount.Increase()
+						go func() {
+							defer h.jWG.Done()
+							j.SetStarted(time.Now().UTC())
+							j.CallTarget()
+							j.SetCompleted(time.Now().UTC())
+							h.jCount.Decrease()
+						}()
+					}
+				default:
+				}
+			}
+		}
+	}
+	h.mu.Lock()
+	h.running = false
+	h.mu.Unlock()
 }
