@@ -55,7 +55,7 @@ func (j *testJob) CallTarget(cbk func()) {
 func (j *testJob) IsCanceled() bool {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
-	return !j.Canceled.IsZero()
+	return j.Canceled
 }
 
 func testFunc(ctx context.Context, t int) (int, error) {
