@@ -72,8 +72,8 @@ func (h *Handler) Stop() {
 	h.mu.Unlock()
 }
 
-func (h *Handler) Wait() {
-	h.jWG.Wait()
+func (h *Handler) Active() int {
+	return h.jCount.Value()
 }
 
 func (h *Handler) Pending() int {
