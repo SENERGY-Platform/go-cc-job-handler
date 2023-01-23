@@ -72,7 +72,7 @@ func testFunc(ctx context.Context, t int) (int, error) {
 	return i, nil
 }
 
-func TestIO(t *testing.T) {
+func TestHandler_IO(t *testing.T) {
 	jh := New(1)
 	err := jh.Add(&testJob{})
 	if err != nil {
