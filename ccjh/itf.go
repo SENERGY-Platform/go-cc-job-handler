@@ -16,13 +16,7 @@
 
 package ccjh
 
-import (
-	"time"
-)
-
 type Job interface {
-	CallTarget()
-	SetStarted(time.Time)
-	SetCompleted(time.Time)
+	CallTarget(func())
 	IsCanceled() bool
 }
