@@ -90,14 +90,14 @@ func (h *Handler) Reset() error {
 }
 
 func (h *Handler) run(maxJobs int, interval time.Duration, async bool) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	if !h.running {
+	if !h.Running() {
+		h.mu.Lock()
 		if h.ticker == nil {
 			h.ticker = time.NewTicker(interval)
 		} else {
 			h.ticker.Reset(interval)
 		}
+		h.mu.Unlock()
 		if async {
 			go h.loop(maxJobs)
 		} else {
