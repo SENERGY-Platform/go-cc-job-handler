@@ -77,6 +77,10 @@ func (h *Handler) Wait() {
 	h.jWG.Wait()
 }
 
+func (h *Handler) Pending() int {
+	return len(h.pJobs)
+}
+
 func (h *Handler) Reset() error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
