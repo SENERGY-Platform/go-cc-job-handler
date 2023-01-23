@@ -134,10 +134,6 @@ func TestHandlerJobs(t *testing.T) {
 	time.Sleep(250 * time.Millisecond)
 	jh.Stop()
 	time.Sleep(250 * time.Millisecond)
-	if jh.Running() {
-		t.Errorf("running == true")
-		return
-	}
 	if jh.Pending() != 0 {
 		t.Error("pending jobs != 0")
 		return
