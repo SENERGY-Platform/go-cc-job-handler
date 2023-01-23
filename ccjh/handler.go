@@ -90,6 +90,7 @@ func (h *Handler) Reset() error {
 	for len(h.pJobs) > 0 {
 		<-h.pJobs
 	}
+	h.jCount.Reset()
 	return nil
 }
 
