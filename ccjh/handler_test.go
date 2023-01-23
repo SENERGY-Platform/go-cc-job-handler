@@ -19,11 +19,13 @@ package ccjh
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 )
 
 type testJob struct {
+	mu       sync.RWMutex
 	tFunc    func()
 	Result   int
 	Error    error
@@ -51,6 +53,8 @@ func (j *testJob) CallTarget(cbk func()) {
 }
 
 func (j *testJob) IsCanceled() bool {
+	j.mu.RLock()
+	defer j.mu.RUnlock()
 	return j.Canceled
 }
 
@@ -118,7 +122,9 @@ func TestHandler_Run(t *testing.T) {
 		return
 	}
 	j2cf()
+	j2.mu.Lock()
 	j2.Canceled = true
+	j2.mu.Unlock()
 	j3, _ := newTestJob(ctx, 1)
 	err = jh.Add(j3)
 	if err != nil {
