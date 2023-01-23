@@ -148,7 +148,44 @@ func TestHandlerJobs(t *testing.T) {
 		return
 	}
 	if j3.Result != 1 {
-		t.Errorf("j3 result != 0")
+		t.Error("j3 result != 0")
+		return
+	}
+}
+
+func TestHandlerControl(t *testing.T) {
+	jh := New(1)
+	err := jh.RunAsync(1, 50*time.Millisecond)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(250 * time.Millisecond)
+	err = jh.Reset()
+	if err == nil {
+		t.Error("reset error == nil")
+		return
+	}
+	err = jh.RunAsync(1, 50*time.Millisecond)
+	if err == nil {
+		t.Error("run error == nil")
+		return
+	}
+	jh.Stop()
+	time.Sleep(250 * time.Millisecond)
+	err = jh.Reset()
+	if err != nil {
+		t.Error("reset error != nil")
+		return
+	}
+	err = jh.RunAsync(1, 50*time.Millisecond)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(250 * time.Millisecond)
+	if !jh.Running() {
+		t.Error("not running after reset")
 		return
 	}
 }
