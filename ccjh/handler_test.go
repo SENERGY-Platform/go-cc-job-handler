@@ -80,7 +80,7 @@ func TestHandlerIO(t *testing.T) {
 		return
 	}
 	if jh.Pending() != 1 {
-		t.Errorf("pending jobs != 1")
+		t.Error("pending jobs != 1")
 		return
 	}
 	err = jh.Add(&testJob{})
@@ -90,11 +90,11 @@ func TestHandlerIO(t *testing.T) {
 	}
 	err = jh.Reset()
 	if err != nil {
-		t.Error(err)
+		t.Error("reset error != nil")
 		return
 	}
 	if jh.Pending() != 0 {
-		t.Errorf("pending jobs != 0")
+		t.Error("pending jobs != 0")
 		return
 	}
 }
@@ -139,16 +139,16 @@ func TestHandlerJobs(t *testing.T) {
 		return
 	}
 	if jh.Pending() != 0 {
-		t.Errorf("pending jobs != 0")
+		t.Error("pending jobs != 0")
 		return
 	}
 	jh.Wait()
 	if j1.Result != 1 {
-		t.Errorf("j1 result != 1")
+		t.Error("j1 result != 1")
 		return
 	}
 	if j2.Result != 0 {
-		t.Errorf("j2 result != 0")
+		t.Error("j2 result != 0")
 		return
 	}
 	if j3.Result != 1 {
