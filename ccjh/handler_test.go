@@ -196,4 +196,25 @@ func TestHandlerControl(t *testing.T) {
 		t.Error("not running after reset")
 		return
 	}
+	j, _ := newTestJob(context.Background(), 1)
+	err = jh.Add(j)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(250 * time.Millisecond)
+	if jh.Pending() != 0 {
+		t.Error("pending jobs != 0")
+		return
+	}
+	jh.Stop()
+	time.Sleep(1 * time.Second)
+	if jh.Active() != 0 {
+		t.Error("active jobs != 0")
+		return
+	}
+	if j.Result != 1 {
+		t.Error("j1 result != 1")
+		return
+	}
 }
