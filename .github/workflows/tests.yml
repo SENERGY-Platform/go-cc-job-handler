@@ -18,4 +18,4 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Test
-        run: go test github.com/SENERGY-Platform/go-cc-job-handler/ccjh -v -race
+        run: go test github.com/SENERGY-Platform/go-cc-job-handler/ccjh -v -race -covermode=atomic -coverprofile=coverage.out
